@@ -6,14 +6,15 @@ import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 public class WebViewActivity extends Activity {
-	static final int PROGRESS_DIALOG = 0;
-
 	private WebView webView;
 
+    int _progress;
 	ProgressDialogTask task;
     ProgressDialog progressDialog;
 	
@@ -22,7 +23,9 @@ public class WebViewActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.webview);
 
-		webView = (WebView) findViewById(R.id.webView1);
+        task = new ProgressDialogTask();
+
+        webView = (WebView) findViewById(R.id.webView1);
 		
 		WebSettings webSettings = webView.getSettings();
 		webSettings.setJavaScriptEnabled(true);
@@ -33,49 +36,71 @@ public class WebViewActivity extends Activity {
 		webView.setVerticalScrollBarEnabled(false);
 		webView.setBackgroundColor(0);
 
-//		progressDialog = ProgressDialog.show(WebViewActivity.this, "",
-//		   		"로딩 중입니다. 잠시 기다려주세요", true);//(ProgressBar) findViewById(R.id.pB1);
+		webView.setWebViewClient(new WebViewClient(){
 
-//		progressThread = new ProgressThread(handler);
-//		progressThread.start();
-//		
-        task = new ProgressDialogTask();
-        task.execute(50);
-		webView.setWebViewClient(new TwinklrWebViewClient());
-		TwinklrWebChromeClient chromeClient = new TwinklrWebChromeClient(task);
+            @Override
+            public void onPageFinished(WebView view, String url) {
+//                if (progressDialog.isShowing()) {
+//                    progressDialog = null;
+
+//                }
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                task.execute(webView);
+
+//                if (!progressDialog.isShowing()) {
+//                    task.execute(view);
+//                    progressDialog = new ProgressDialog(activity);
+//                    progressDialog.setMessage("Page Loading...");
+//                    progressDialog.show();
+//                }
+//                if(!progressDialog.isShowing()){
+//
+//                }
+
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url){
+                view.loadUrl(url);
+                return true;
+            }
+        });
+        WebChromeClient chromeClient = new WebChromeClient(){
+            //프로그레스 변경 시 호출
+            @Override
+            public void onProgressChanged(WebView view, int progress) {
+                _progress = progress;
+
+            }
+        };
+
 		webView.setWebChromeClient(chromeClient);
-		
-
 		webView.loadUrl("http://twinklr.com");
-		
-////		progressDialog = new ProgressDialog(WebViewActivity.this);
-////		progressDialog = ProgressDialog.(WebViewActivity.this, "",
-////		   		"로딩 중입니다. 잠시 기다려주세요", true);
-//		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-//		progressDialog.setMessage("Loading...");
-////		progressThread = new ProgressThread(handler);
-////		progressThread.start();
-		
+
 	}
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 	    if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) {
 	    	webView.goBack();
-	        return true;
+
+            return true;
 	    }
 	    return super.onKeyDown(keyCode, event);
 	}
 	
-	class ProgressDialogTask extends AsyncTask<ProgressDialog, Integer, Void> {//Params, Progress, Result
-
+	class ProgressDialogTask extends AsyncTask<WebView, Integer, Integer> {//Params, Progress, Result
 
         @Override
         protected void onPreExecute() {
             System.out.println("onPreExecute : ");
             progressDialog = new ProgressDialog(WebViewActivity.this);
             progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.setTitle("Loading");
+            progressDialog.setTitle("Loading...");
             progressDialog.setMessage("Loading...");
             progressDialog.show();
 
@@ -85,18 +110,27 @@ public class WebViewActivity extends Activity {
         @Override
         protected void onProgressUpdate(Integer ... progress) {
             progressDialog.setProgress(progress[0]);
+            progressDialog.setMessage("Please wait..... "+progress[0] + "%");
         }
 
         @Override
-        protected void onPostExecute(Void) {
+        protected void onPostExecute(Integer a) {
             // 작업이 완료 된 후 할일
             progressDialog.dismiss();
-//            super.onPostExecute();
+            super.onPostExecute(a);
         }
 
         @Override
-        protected Void doInBackground(ProgressDialog ... paramses){
-            publishProgress(paramses[0]);
+        protected Integer doInBackground(WebView ... paramses){
+            while(_progress < 100){
+                publishProgress(_progress);
+
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                }
+            }
+            return _progress;
         }
     }
 }
