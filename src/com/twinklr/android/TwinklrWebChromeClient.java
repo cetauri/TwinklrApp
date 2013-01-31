@@ -1,29 +1,31 @@
 package com.twinklr.android;
 
-import android.widget.ProgressBar;
+import android.os.AsyncTask;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
 public class TwinklrWebChromeClient extends WebChromeClient {
-	 final ProgressBar progressBar;
+	 final AsyncTask task;
 	 
-	 TwinklrWebChromeClient(ProgressBar progressBar){
-		 this.progressBar = progressBar;
+	 TwinklrWebChromeClient(AsyncTask task){
+		 this.task = task;
 
 	 }
 	//프로그레스 변경 시 호출
     @Override
     public void onProgressChanged(WebView view, int progress) {
-
-        if(progress < 100 && progressBar.getVisibility() == ProgressBar.GONE){
-        	progressBar.setVisibility(ProgressBar.VISIBLE);
-//            txtview.setVisibility(View.VISIBLE);
-        }
-        progressBar.setProgress(progress);
-        if(progress == 100) {
-        	progressBar.setVisibility(ProgressBar.GONE);
-//            txtview.setVisibility(View.GONE);
-        }
+//        task.fi
+//        task.execute(progress);
+//        task.execute(progress);
+//        if(progress < 100 && progressBar.getVisibility() == ProgressBar.GONE){
+//        	progressBar.setVisibility(ProgressBar.VISIBLE);
+////            txtview.setVisibility(View.VISIBLE);
+//        }
+//        progressBar.setProgress(progress);
+//        if(progress == 100) {
+//        	progressBar.setVisibility(ProgressBar.GONE);
+////            txtview.setVisibility(View.GONE);
+//        }
         
     }
  }
